@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator jsonTypes {
+  provider = "prisma-json-types-generator"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model session {
+  @@ignore
+}
+
+model account {
+  @@ignore
+}
+
+model verificationToken {
+  @@ignore
+}
+
+model profile {
+  @@ignore
+}
+
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt   DateTime
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  role      Role      @default(GUEST)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  gitUser   GitUser?  // optional one-to-one back reference
+
+  @@map("users")
+}
+
+model GitUser {
+  gitName   String      @id @unique
+  repos     RepoOnUser[]
+  userId    Int?         @unique
+  user      User?        @relation(fields: [userId], references: [id])
+  @@index([gitName, userId])
+  @@map("gitusers")
+}
+
+model Repo {
+  name    String       @id @unique
+  users   RepoOnUser[]
+
+  @@map("repos")
+}
+
+model RepoOnUser {
+  id         Int      @id @default(autoincrement())
+  gitName    String
+  repoName   String
+  assignedAt DateTime @default(now())
+
+  repo       Repo     @relation(fields: [repoName], references: [name])
+  gitUser    GitUser  @relation(fields: [gitName], references: [gitName])
+
+  commitReviews CommitReview[]
+
+  @@unique([gitName, repoName])
+}
+
+model CommitReview {
+  
+  id                           Int        @id @default(autoincrement())
+  
+  sha                          String     @db.VarChar(255)
+  repoOnUserId                 Int
+
+  createdAt                    DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt                    DateTime   @updatedAt @db.Timestamptz(6)
+
+  reviewBy                     ReviewBy   @default(AI)
+  reviewer                     String     @db.VarChar(255)
+  
+  message                      String     @db.VarChar(255)
+  suggested                    String     @db.VarChar(255)
+  adherence                    Int        @default(0)
+  adherence_comment            String     @default("")
+  
+  vulnerability                Int        @default(0)
+  vulnerability_comment        String     @default("")
+  complexity_comment           String     @default("")
+
+  singleResponsibility         Int        @default(0)
+  openClosed                   Int        @default(0)
+  liskovSubstitution           Int        @default(0)
+  interfaceSegregation         Int        @default(0)
+  dependencyInversion          Int        @default(0)
+  
+  singleResponsibility_comment String     @default("")
+  openClosed_comment           String     @default("")
+  interfaceSegregation_comment String     @default("")
+  liskovSubstitution_comment   String     @default("")
+  dependencyInversion_comment  String     @default("")
+
+  repoOnUser   RepoOnUser @relation(fields: [repoOnUserId], references: [id])
+
+  @@index([sha, repoOnUserId])
+  @@map("commitreviews")
+}
+
+enum ReviewBy {
+  HUMAN
+  AI
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  ASSISTANT
+  EXPERT
+  LEADER
+  STUDENT
+  GUEST
+}

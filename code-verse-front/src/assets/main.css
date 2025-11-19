@@ -1,0 +1,35 @@
+/* main.css */
+@import './base.css';
+
+html, body {
+  overflow: hidden;
+}
+
+
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 100%; /* Ensure the app container uses full width */
+  height: 100vh; /* Ensure the app takes the full viewport height */
+}
+
+a,
+.green {
+  text-decoration: none;
+  transition: 0.4s;
+  padding: 3px;
+}
+
+@media (min-width: 1024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%; /* Make sure it takes full width on larger screens */
+  }
+}
